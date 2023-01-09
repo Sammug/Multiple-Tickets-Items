@@ -44,7 +44,8 @@ fun ClientDetails(
                 .fillMaxWidth()
         ) {
             TextField(
-                value = "",
+                value = firstName
+                ,
                 onValueChange = {
                     firstName = it
                 },

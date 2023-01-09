@@ -2,6 +2,7 @@ package sam.samdavid.multiselector
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -9,13 +10,14 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.lifecycle.viewmodel.compose.viewModel
-import sam.samdavid.multiselector.models.SelectedTypeModel
+import sam.samdavid.multiselector.models.ClientModel
 import sam.samdavid.multiselector.models.TicketTypeModel
 import sam.samdavid.multiselector.ui.theme.MultiSelectorTheme
 import sam.samdavid.multiselector.viewmodel.AppViewModel
@@ -23,16 +25,16 @@ import sam.samdavid.multiselector.viewmodel.AppViewModel
 @Composable
 fun TicketType(
     ticketTypeModel: TicketTypeModel,
+    clientDetails: ClientModel,
 ) {
     val viewModel = viewModel<AppViewModel>()
 
     val quantityList = listOf("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10")
-    var selectedState = viewModel.selectedTicketType.quantity
     var selectedText by remember {
-        mutableStateOf("0")
+        mutableStateOf("")
     }
 
-    var ticketsList  = arrayListOf<TicketTypeModel>()
+    val ticketsList = arrayListOf<TicketTypeModel>()
 
     var isExpanded by remember {
         mutableStateOf(false)
@@ -42,6 +44,9 @@ fun TicketType(
     } else {
         Icons.Filled.KeyboardArrowDown
     }
+
+    val focusManager = LocalFocusManager.current
+
     ConstraintLayout(
         modifier = Modifier
             .fillMaxWidth()
@@ -65,7 +70,6 @@ fun TicketType(
             }
         )
 
-
         Column(
             modifier = Modifier
                 .width(100.dp)
@@ -78,10 +82,10 @@ fun TicketType(
             OutlinedTextField(
                 value = selectedText,
                 onValueChange = {
-                    selectedText = it
+                    viewModel._selectionState.value = it
                 },
                 textStyle = TextStyle(
-                    fontSize = 12.sp
+                    fontSize = 13.sp
                 ),
                 modifier = Modifier
                     .fillMaxWidth(),
@@ -94,6 +98,9 @@ fun TicketType(
                                 isExpanded = !isExpanded
                             }
                     )
+                },
+                keyboardActions = KeyboardActions {
+                    focusManager.clearFocus(force = true)
                 }
             )
 
@@ -107,12 +114,13 @@ fun TicketType(
                     DropdownMenuItem(onClick = {
                         selectedText = value
                         ticketsList.add(ticketTypeModel)
-                        viewModel.selectedTicketType = SelectedTypeModel(
-                            quantity = value,
-                            tickets = ticketsList,
-                            details = arrayListOf()
-                        )
                         isExpanded = false
+                        val ticket = ticketTypeModel.copy(quantity = selectedText)
+                        //update selections
+                        viewModel.addTickets(
+                            ticketType = ticket,
+                            clientDetails = clientDetails
+                        )
                     }) {
                         Text(
                             text = value,
@@ -134,17 +142,5 @@ fun TicketType(
             color = Color.LightGray,
             thickness = 1.dp
         )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun TicketTypePreview() {
-    MultiSelectorTheme {
-//        TicketType(ticketTypeModel = TicketTypeModel("vvip","Ksh. 5000","VVIP TICKET"),
-//            listOf("0", "1", "2"), selectionState = SelectionState("0"), actionSelected = {
-//                item -> TicketTypeModel("vvip","Ksh. 5000","VVIP TICKET")
-//            }
-//        )
     }
 }
